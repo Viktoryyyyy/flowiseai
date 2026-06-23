@@ -1,0 +1,8 @@
+{
+  "type": "object",
+  "properties": {
+    "task_id": { "type": "string" },
+    "role": { "type": "string" }
+  },
+  "required": ["task_id", "role"]
+}
