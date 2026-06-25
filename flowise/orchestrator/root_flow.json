@@ -1,0 +1,17 @@
+{
+  "flow": "root_orchestrator_v1",
+  "nodes": [
+    {"id": "trigger", "type": "input"},
+    {"id": "router", "type": "switch", "routes": ["pm_l3", "subchat"]},
+    {"id": "pm_l3", "type": "llm"},
+    {"id": "subchat", "type": "llm"},
+    {"id": "state_write", "type": "http_request"}
+  ],
+  "edges": [
+    ["trigger", "router"],
+    ["router", "pm_l3"],
+    ["router", "subchat"],
+    ["pm_l3", "state_write"],
+    ["subchat", "state_write"]
+  ]
+}
