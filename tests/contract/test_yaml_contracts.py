@@ -17,6 +17,18 @@ YAML_FILES = {
 }
 
 ALLOWED_PLACEHOLDER_VALUES = {"none", "not_applicable", "<REDACTED>", "<SECRET_FROM_ENV>", "${ENV_VAR_NAME}"}
+REQUIRED_STATE_API_OPERATIONS = {
+    "create_task",
+    "read_task",
+    "transition_task_state",
+    "claim_next_task",
+    "renew_task_lease",
+    "release_task_lease",
+    "persist_handoff",
+    "persist_role_output",
+    "append_audit_event",
+    "read_state_snapshot",
+}
 
 
 def load_yaml(path: str) -> dict[str, Any]:
@@ -125,28 +137,39 @@ def test_execution_mapping_required_top_level_keys() -> None:
     assert data["role_outputs"]["SUBCHAT_IMPLEMENTATION"] == "implementation_report"
     assert data["role_outputs"]["SUBCHAT_VALIDATION"] == "validation_report"
     assert "integration/" in data["lanes"]["integration"]["branch_prefixes"]
+    assert "flowiseai-pm/" in data["lanes"]["flowiseai_pm_orchestration"]["branch_prefixes"]
     assert data["authority_boundaries"]["merge_authority"] == "PM_L2_ONLY"
 
 
-def test_state_api_is_contract_stub_only() -> None:
+def test_state_api_is_contract_only() -> None:
     data = load_yaml(YAML_FILES["state_api"])
     for key in [
         "schema_version",
         "status",
         "runtime_claim",
+        "implementation_status",
+        "resources",
         "entities",
+        "operations",
         "abstract_operations",
         "state_enums",
+        "lifecycle",
         "schema_refs",
+        "idempotency_model",
+        "lease_model",
+        "audit_model",
         "runtime_boundary",
     ]:
         assert key in data
 
-    assert data["status"] == "contract_stub_only"
+    assert data["status"] == "contract_only"
     assert data["runtime_claim"] is False
-    assert set(["Task", "Handoff", "RoleOutput", "AuditEvent", "StateSnapshot"]).issubset(data["entities"])
+    assert data["implementation_status"] == "none"
+    assert set(["Task", "Handoff", "RoleOutput", "AuditEvent", "TaskClaimLease", "StateSnapshot"]).issubset(data["resources"])
+    assert set(REQUIRED_STATE_API_OPERATIONS) == set(data["operations"])
     assert "created" in data["state_enums"]
     assert data["runtime_boundary"]["server_url"] == "none"
+    assert data["runtime_boundary"]["db_engine"] == "not_selected"
 
 
 def test_workflow_contract() -> None:
