@@ -1,0 +1,114 @@
+schema_version: "1.0.0"
+
+roles:
+  PM_L1_CONTROL_TOWER:
+    category: "phase_control"
+    allowed_actions:
+      - "create user-facing objective context"
+      - "route to PM L2"
+    forbidden_actions:
+      - "repository implementation"
+      - "merge"
+      - "server apply"
+  PM_L2_PHASE_OWNER:
+    category: "phase_authority"
+    allowed_actions:
+      - "define approved scope"
+      - "define authority boundary"
+      - "approve merge"
+    forbidden_actions:
+      - "direct main write"
+      - "unscoped implementation"
+  PM_L3_DELIVERY_VALIDATION_OWNER:
+    category: "delivery_validation"
+    allowed_actions:
+      - "decompose PM L2 scope"
+      - "route Sub-chat task"
+      - "validate evidence"
+    forbidden_actions:
+      - "scope widening"
+      - "merge without PM L2 approval"
+  SUBCHAT_SPEC_CONTRACT_DESIGNER:
+    category: "subchat"
+    output_type: "spec_package"
+    allowed_actions:
+      - "design contract package"
+    forbidden_actions:
+      - "implementation commit"
+      - "pull request creation"
+  SUBCHAT_IMPLEMENTATION:
+    category: "subchat"
+    output_type: "implementation_report"
+    flow: "PR-first GitHub flow"
+    allowed_actions:
+      - "create allowed branch"
+      - "commit approved file scope"
+      - "open or update one PR"
+    forbidden_actions:
+      - "direct main write"
+      - "merge"
+      - "server apply"
+      - "runtime smoke"
+  SUBCHAT_VALIDATION:
+    category: "subchat"
+    output_type: "validation_report"
+    allowed_actions:
+      - "validate approved artifacts"
+      - "report blockers"
+    forbidden_actions:
+      - "scope widening"
+      - "merge"
+      - "server apply"
+
+lanes:
+  route_b_n8n:
+    branch_prefixes:
+      - "route-b/"
+      - "n8n/"
+  ema_3_19_ai:
+    branch_prefixes:
+      - "strategy/ema-3-19-ai/"
+      - "research/ema-3-19-ai/"
+  integration:
+    branch_prefixes:
+      - "integration/"
+
+execution_modes:
+  browser_chatgpt_github_direct:
+    context_transport: "inline_copy_block"
+    github_flow: "branch -> commit -> PR -> CI evidence -> PM L2 review"
+  route_b_n8n_universal_role_runner:
+    context_transport: "n8n_db_ref_or_immutable_repo_ref"
+    github_flow: "DB-driven executor request when authorized"
+
+role_outputs:
+  SUBCHAT_SPEC_CONTRACT_DESIGNER: "spec_package"
+  SUBCHAT_IMPLEMENTATION: "implementation_report"
+  SUBCHAT_VALIDATION: "validation_report"
+
+schema_refs:
+  task: "contracts/schemas/task.schema.json"
+  handoff: "contracts/schemas/handoff.schema.json"
+  role_output: "contracts/schemas/role-output.schema.json"
+  audit_event: "contracts/schemas/audit-event.schema.json"
+
+validators:
+  json_schema_validation: "tests/contract/test_json_schemas.py"
+  yaml_contract_validation: "tests/contract/test_yaml_contracts.py"
+  required_file_validation: "tests/contract/test_required_bootstrap_files.py"
+
+authority_boundaries:
+  merge_authority: "PM_L2_ONLY"
+  direct_main_write_allowed: false
+  server_apply_authority: "NONE"
+  runtime_allowed: "no"
+  allowed_repo: "Viktoryyyyy/flowiseai"
+  allowed_branch: "integration/flowiseai-bootstrap-v1"
+
+forbidden_action_classes:
+  - "direct main write"
+  - "merge"
+  - "server apply"
+  - "runtime smoke"
+  - "secrets"
+  - "scope widening"

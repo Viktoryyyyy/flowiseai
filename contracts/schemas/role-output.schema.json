@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "contracts/schemas/role-output.schema.json",
+  "title": "FlowiseAI PM Role Output Contract",
+  "type": "object",
+  "required": [
+    "output_version",
+    "role",
+    "project",
+    "task_id",
+    "lane",
+    "execution_mode",
+    "status",
+    "output_type",
+    "payload",
+    "blockers",
+    "role_step_report",
+    "created_at"
+  ],
+  "properties": {
+    "output_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "role": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "lane": {
+      "type": "string",
+      "enum": [
+        "route_b_n8n",
+        "ema_3_19_ai",
+        "integration"
+      ]
+    },
+    "execution_mode": {
+      "type": "string",
+      "enum": [
+        "browser_chatgpt_github_direct",
+        "route_b_n8n_universal_role_runner"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "fail",
+        "blocked",
+        "partial"
+      ]
+    },
+    "output_type": {
+      "type": "string",
+      "enum": [
+        "spec_package",
+        "implementation_report",
+        "validation_report",
+        "evidence_report",
+        "blocker_report"
+      ]
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 0
+    },
+    "role_step_report": {
+      "type": "object",
+      "required": [
+        "alignment_with_root_task",
+        "done",
+        "not_done",
+        "blockers",
+        "next_step"
+      ],
+      "properties": {
+        "alignment_with_root_task": {
+          "type": "string",
+          "minLength": 1
+        },
+        "done": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "not_done": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "blockers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "next_step": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "created_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "extensions": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

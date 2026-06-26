@@ -1,0 +1,50 @@
+{
+  "subchat_contract_version": "1.0.0",
+  "status": "skeleton_contract",
+  "runtime_claim": false,
+  "handoff_schema_ref": "contracts/schemas/handoff.schema.json",
+  "role_output_schema_ref": "contracts/schemas/role-output.schema.json",
+  "required_input_handoff_fields": [
+    "handoff_id",
+    "project",
+    "to_role",
+    "task_id",
+    "lane",
+    "execution_mode",
+    "current_goal",
+    "verified_current_state",
+    "approved_scope",
+    "forbidden_scope",
+    "authority_boundary",
+    "acceptance_criteria",
+    "required_return_format"
+  ],
+  "handoff_intake_gate": {
+    "required": true,
+    "material_work_allowed_when": "handoff_ready=true"
+  },
+  "allowed_subchat_roles": {
+    "SUBCHAT_SPEC_CONTRACT_DESIGNER": {
+      "expected_output_type": "spec_package"
+    },
+    "SUBCHAT_IMPLEMENTATION": {
+      "expected_output_type": "implementation_report"
+    },
+    "SUBCHAT_VALIDATION": {
+      "expected_output_type": "validation_report"
+    }
+  },
+  "authority_boundary_inheritance": "Sub-chat authority is inherited from the active handoff and may not be widened locally.",
+  "stop_conditions": [
+    "missing lane",
+    "missing execution_mode",
+    "missing approved scope",
+    "missing authority boundary",
+    "target role mismatch",
+    "project mismatch"
+  ],
+  "runtime_notes": [
+    "This file defines role contract shape only.",
+    "It contains no connector credentials and no automated execution claim."
+  ]
+}
