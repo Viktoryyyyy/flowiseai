@@ -91,6 +91,15 @@ def test_allowed_transition_instances_validate(from_state: str, to_state: str) -
     state_transition_validator().validate(minimal_transition_instance(from_state, to_state))
 
 
+def test_forbidden_transitions_are_not_listed() -> None:
+    validator = state_transition_validator()
+
+    for from_state, to_state in FORBIDDEN_TRANSITION_PAIRS:
+        assert to_state not in EXPECTED_ALLOWED_TRANSITIONS[from_state]
+        with pytest.raises(ValidationError):
+            validator.validate(minimal_transition_instance(from_state, to_state))
+
+
 @pytest.mark.parametrize(("from_state", "to_state"), FORBIDDEN_TRANSITION_PAIRS)
 def test_forbidden_transition_instances_are_rejected(
     from_state: str, to_state: str
