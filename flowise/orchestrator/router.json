@@ -1,8 +1,0 @@
-{
-  "routing_rules": {
-    "pm_l1": "pm_l3",
-    "analysis": "pm_l3",
-    "execution": "subchat",
-    "default": "pm_l3"
-  }
-}
