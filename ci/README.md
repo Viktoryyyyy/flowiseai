@@ -1,17 +1,21 @@
 # CI Validation Scope
 
-The `tests` workflow validates bootstrap-v1 contracts only.
+The `tests` workflow validates bootstrap-v1 contracts and the Phase 2A State API contract/design package.
 
 ## Validation included
 
 CI checks:
 
 - JSON Schema Draft 2020-12 syntax and metaschema validity;
-- representative sample instances for task, handoff, role output, and audit event;
+- representative sample instances for task, handoff, role output, audit event, task lease, state snapshot, state transition, and idempotency record;
 - YAML parsing and required top-level keys;
-- required bootstrap file presence and non-empty content;
+- required bootstrap and State API contract/design file presence and non-empty content;
 - Flowise skeleton flags;
-- State API contract stub flags;
+- State API contract-only flags;
+- State API lifecycle transition contract;
+- State API lane taxonomy contract for `flowiseai_pm_orchestration`;
+- State API required operation contract;
+- retry/failure representation through Task metadata plus AuditEvent only;
 - no likely secret values;
 - no live runtime endpoint values;
 - no positive runtime claim.
