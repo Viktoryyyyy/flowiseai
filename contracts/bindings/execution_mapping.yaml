@@ -1,8 +1,0 @@
-execution_mapping:
-  trigger: PhaseRun.create
-  pm_l3: RoleTask.create
-  subchat: RoleAttempt.create
-  state_write: RoleOutput,AuditEvent
-
-rules:
-  completion: RoleOutput_persisted_and_AuditEvent_logged
