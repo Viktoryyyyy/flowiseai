@@ -1,75 +1,269 @@
-schema_version: "1.0.0"
-status: "contract_stub_only"
+schema_version: 1.0.0
+status: contract_only
 runtime_claim: false
-implementation_status: "none"
-service_binding: "not_applicable"
-auth_secret: "none"
-deployment: "none"
-
+implementation_status: none
+service_binding: not_applicable
+auth_secret: none
+deployment: none
+design_scope:
+  package_type: repository contract/design only
+  runtime_service: false
+  db_engine_selected: false
+  deployment_selected: false
+  flowise_deployment: false
+  server_apply: false
+  runtime_smoke: false
+resources:
+  Task:
+    schema_ref: contracts/schemas/task.schema.json
+    purpose: unit of assigned PM work with scope, authority, lifecycle state, and
+      retry/failure metadata
+  Handoff:
+    schema_ref: contracts/schemas/handoff.schema.json
+    purpose: self-contained role context transfer
+  RoleOutput:
+    schema_ref: contracts/schemas/role-output.schema.json
+    purpose: immutable role result persisted as append-new-version-only evidence
+  AuditEvent:
+    schema_ref: contracts/schemas/audit-event.schema.json
+    purpose: append-only evidence and outcome record
+  TaskClaimLease:
+    schema_ref: contracts/schemas/task-lease.schema.json
+    purpose: exclusive finite task claim lease
+  StateSnapshot:
+    schema_ref: contracts/schemas/state-snapshot.schema.json
+    purpose: read-only summary over task, handoff, role output, audit, and lease state
 entities:
   Task:
-    schema_ref: "contracts/schemas/task.schema.json"
-    purpose: "unit of assigned PM work with scope and authority"
+    schema_ref: contracts/schemas/task.schema.json
+    purpose: unit of assigned PM work with scope, authority, lifecycle state, and
+      retry/failure metadata
   Handoff:
-    schema_ref: "contracts/schemas/handoff.schema.json"
-    purpose: "self-contained role context transfer"
+    schema_ref: contracts/schemas/handoff.schema.json
+    purpose: self-contained role context transfer
   RoleOutput:
-    schema_ref: "contracts/schemas/role-output.schema.json"
-    purpose: "normalized result returned by a role"
+    schema_ref: contracts/schemas/role-output.schema.json
+    purpose: immutable role result persisted as append-new-version-only evidence
   AuditEvent:
-    schema_ref: "contracts/schemas/audit-event.schema.json"
-    purpose: "append-only evidence and outcome record"
+    schema_ref: contracts/schemas/audit-event.schema.json
+    purpose: append-only evidence and outcome record
+  TaskClaimLease:
+    schema_ref: contracts/schemas/task-lease.schema.json
+    purpose: exclusive finite task claim lease
   StateSnapshot:
-    purpose: "read model summarizing task, handoff, role output, audit, and validation state"
-
-abstract_operations:
+    schema_ref: contracts/schemas/state-snapshot.schema.json
+    purpose: read-only summary over task, handoff, role output, audit, and lease state
+operations:
   create_task:
-    input_entity: "Task"
-    output: "task_ref"
+    input_entity: Task
+    output: task_ref
+    mutating: true
+    idempotent: true
     side_effect_runtime: false
   read_task:
-    input: "task_ref"
-    output_entity: "Task"
+    input: task_ref
+    output_entity: Task
+    mutating: false
+    idempotent: false
     side_effect_runtime: false
   transition_task_state:
-    input: "task_ref plus target_state"
-    output: "state_transition_record"
+    input: task_ref plus target_state
+    output: state_transition_record
+    mutating: true
+    idempotent: true
+    side_effect_runtime: false
+  claim_next_task:
+    input: lane plus claimant
+    output_entity: TaskClaimLease
+    mutating: true
+    idempotent: true
+    side_effect_runtime: false
+  renew_task_lease:
+    input: lease_ref plus expiry
+    output_entity: TaskClaimLease
+    mutating: true
+    idempotent: true
+    side_effect_runtime: false
+  release_task_lease:
+    input: lease_ref
+    output_entity: TaskClaimLease
+    mutating: true
+    idempotent: true
     side_effect_runtime: false
   persist_handoff:
-    input_entity: "Handoff"
-    output: "handoff_ref"
+    input_entity: Handoff
+    output: handoff_ref
+    mutating: true
+    idempotent: true
     side_effect_runtime: false
   persist_role_output:
-    input_entity: "RoleOutput"
-    output: "role_output_ref"
+    input_entity: RoleOutput
+    output: role_output_ref
+    mutating: true
+    idempotent: true
     side_effect_runtime: false
   append_audit_event:
-    input_entity: "AuditEvent"
-    output: "audit_event_ref"
+    input_entity: AuditEvent
+    output: audit_event_ref
+    mutating: true
+    idempotent: true
     side_effect_runtime: false
   read_state_snapshot:
-    input: "task_ref"
-    output_entity: "StateSnapshot"
+    input: snapshot_query
+    output_entity: StateSnapshot
+    mutating: false
+    idempotent: false
     side_effect_runtime: false
-
+abstract_operations:
+  create_task:
+    input_entity: Task
+    output: task_ref
+    side_effect_runtime: false
+  read_task:
+    input: task_ref
+    output_entity: Task
+    side_effect_runtime: false
+  transition_task_state:
+    input: task_ref plus target_state
+    output: state_transition_record
+    side_effect_runtime: false
+  claim_next_task:
+    input: lane plus claimant
+    output_entity: TaskClaimLease
+    side_effect_runtime: false
+  renew_task_lease:
+    input: lease_ref plus expiry
+    output_entity: TaskClaimLease
+    side_effect_runtime: false
+  release_task_lease:
+    input: lease_ref
+    output_entity: TaskClaimLease
+    side_effect_runtime: false
+  persist_handoff:
+    input_entity: Handoff
+    output: handoff_ref
+    side_effect_runtime: false
+  persist_role_output:
+    input_entity: RoleOutput
+    output: role_output_ref
+    side_effect_runtime: false
+  append_audit_event:
+    input_entity: AuditEvent
+    output: audit_event_ref
+    side_effect_runtime: false
+  read_state_snapshot:
+    input: snapshot_query
+    output_entity: StateSnapshot
+    side_effect_runtime: false
 state_enums:
-  - "created"
-  - "assigned"
-  - "running"
-  - "blocked"
-  - "completed"
-  - "validation_pending"
-  - "validated"
-  - "failed"
-
+- created
+- assigned
+- running
+- blocked
+- completed
+- validation_pending
+- validated
+- failed
+lifecycle:
+  allowed_transitions:
+    created:
+    - assigned
+    - blocked
+    - failed
+    assigned:
+    - running
+    - blocked
+    - failed
+    running:
+    - assigned
+    - blocked
+    - completed
+    - validation_pending
+    - failed
+    blocked:
+    - assigned
+    - failed
+    completed:
+    - validation_pending
+    - validated
+    validation_pending:
+    - validated
+    - blocked
+    - failed
+    validated: []
+    failed: []
+  terminal_states:
+  - validated
+  - failed
 schema_refs:
-  task: "contracts/schemas/task.schema.json"
-  handoff: "contracts/schemas/handoff.schema.json"
-  role_output: "contracts/schemas/role-output.schema.json"
-  audit_event: "contracts/schemas/audit-event.schema.json"
-
+  task: contracts/schemas/task.schema.json
+  handoff: contracts/schemas/handoff.schema.json
+  role_output: contracts/schemas/role-output.schema.json
+  audit_event: contracts/schemas/audit-event.schema.json
+  task_lease: contracts/schemas/task-lease.schema.json
+  state_snapshot: contracts/schemas/state-snapshot.schema.json
+  state_transition: contracts/schemas/state-transition.schema.json
+  idempotency_record: contracts/schemas/idempotency-record.schema.json
+idempotency_model:
+  mutating_operations:
+  - create_task
+  - transition_task_state
+  - claim_next_task
+  - renew_task_lease
+  - release_task_lease
+  - persist_handoff
+  - persist_role_output
+  - append_audit_event
+  record_schema_ref: contracts/schemas/idempotency-record.schema.json
+  storage_backend: not_selected
+  side_effect_runtime: false
+lease_model:
+  schema_ref: contracts/schemas/task-lease.schema.json
+  exclusive: true
+  finite: true
+  ttl_default: not_selected
+  max_duration_default: not_selected
+  side_effect_runtime: false
+audit_model:
+  append_only: true
+  lifecycle_events: true
+  idempotency_events: true
+  lease_events: true
+  retry_failure_events: true
+  side_effect_runtime: false
+role_output_model:
+  immutable_persistence: true
+  replacement_policy: append_new_version_only
+  side_effect_runtime: false
+state_snapshot_model:
+  schema_ref: contracts/schemas/state-snapshot.schema.json
+  read_only: true
+  side_effect_runtime: false
+retry_failure_model:
+  representation: Task metadata plus AuditEvent only
+  retry_record_schema: not_created
+  task_metadata_fields:
+  - attempt_count
+  - max_attempts
+  - retry_state
+  - failure_state
+  - last_failure_event_ref
+  - last_failure_reason
+  - next_retry_after
+  - backoff_policy_ref
+  audit_event_types:
+  - retry_scheduled
+  - retry_attempted
+  - retry_exhausted
+  - task_failed
+  max_attempts_default: not_selected
+  backoff_default: not_selected
+  side_effect_runtime: false
 runtime_boundary:
-  server_url: "none"
-  auth_mode: "none"
-  runtime_config: "not_applicable"
-  deployment_claim: "none"
+  server_url: none
+  auth_mode: none
+  runtime_config: not_applicable
+  deployment_claim: none
+  db_engine: not_selected
+  framework: not_selected
+  service_topology: not_selected
