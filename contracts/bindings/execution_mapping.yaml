@@ -72,6 +72,10 @@ lanes:
   integration:
     branch_prefixes:
       - "integration/"
+  flowiseai_pm_orchestration:
+    branch_prefixes:
+      - "flowiseai-pm/"
+    purpose: "FlowiseAI PM orchestration contract/design work"
 
 execution_modes:
   browser_chatgpt_github_direct:
@@ -91,11 +95,18 @@ schema_refs:
   handoff: "contracts/schemas/handoff.schema.json"
   role_output: "contracts/schemas/role-output.schema.json"
   audit_event: "contracts/schemas/audit-event.schema.json"
+  task_lease: "contracts/schemas/task-lease.schema.json"
+  state_snapshot: "contracts/schemas/state-snapshot.schema.json"
+  state_transition: "contracts/schemas/state-transition.schema.json"
+  idempotency_record: "contracts/schemas/idempotency-record.schema.json"
 
 validators:
   json_schema_validation: "tests/contract/test_json_schemas.py"
   yaml_contract_validation: "tests/contract/test_yaml_contracts.py"
   required_file_validation: "tests/contract/test_required_bootstrap_files.py"
+  state_api_lifecycle_contract: "tests/contract/test_state_api_lifecycle_contract.py"
+  state_api_lane_taxonomy: "tests/contract/test_state_api_lane_taxonomy.py"
+  state_api_operation_contract: "tests/contract/test_state_api_operation_contract.py"
 
 authority_boundaries:
   merge_authority: "PM_L2_ONLY"
@@ -103,7 +114,7 @@ authority_boundaries:
   server_apply_authority: "NONE"
   runtime_allowed: "no"
   allowed_repo: "Viktoryyyyy/flowiseai"
-  allowed_branch: "integration/flowiseai-bootstrap-v1"
+  allowed_branch: "flowiseai-pm/state-api-contract-design-v1"
 
 forbidden_action_classes:
   - "direct main write"

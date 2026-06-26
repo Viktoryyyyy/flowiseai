@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 import pathlib
 import re
@@ -14,11 +15,16 @@ REQUIRED_BOOTSTRAP_FILES = [
     "docs/bootstrap/system_bootstrap_v1.md",
     "docs/architecture-overview.md",
     "docs/pm_l2_flow_tz.yaml",
+    "docs/state_api/state_api_minimal_design.md",
     "00_CORE_CONSTITUTION/repository-principles.md",
     "contracts/schemas/task.schema.json",
     "contracts/schemas/role-output.schema.json",
     "contracts/schemas/handoff.schema.json",
     "contracts/schemas/audit-event.schema.json",
+    "contracts/schemas/state-snapshot.schema.json",
+    "contracts/schemas/task-lease.schema.json",
+    "contracts/schemas/state-transition.schema.json",
+    "contracts/schemas/idempotency-record.schema.json",
     "contracts/bindings/execution_mapping.yaml",
     "flowise/orchestrator/root_flow.json",
     "flowise/orchestrator/router.json",
@@ -30,11 +36,12 @@ REQUIRED_BOOTSTRAP_FILES = [
     "tests/contract/test_json_schemas.py",
     "tests/contract/test_yaml_contracts.py",
     "tests/contract/test_required_bootstrap_files.py",
+    "tests/contract/test_state_api_lifecycle_contract.py",
+    "tests/contract/test_state_api_lane_taxonomy.py",
+    "tests/contract/test_state_api_operation_contract.py"
 ]
 
-
 EXPECTED_BOOTSTRAP_FILES = list(REQUIRED_BOOTSTRAP_FILES)
-
 
 ALLOWED_PLACEHOLDERS = {
     "<REDACTED>",
@@ -46,7 +53,6 @@ ALLOWED_PLACEHOLDERS = {
     "redacted",
 }
 
-
 SECRET_VALUE_PATTERNS = [
     re.compile(r"AKIA[0-9A-Z]{16}"),
     re.compile(r"ghp_[A-Za-z0-9_]{20,}"),
@@ -54,7 +60,6 @@ SECRET_VALUE_PATTERNS = [
     re.compile(r"sk-[A-Za-z0-9]{20,}"),
     re.compile(r"BEGIN [A-Z ]*PRIVATE KEY"),
 ]
-
 
 SENSITIVE_ASSIGNMENT = re.compile(
     r"(?i)\b(secret|token|api[_-]?key|password|credential)\b\s*[:=]\s*[\"']?([^\"'\n#]+)"
@@ -105,10 +110,20 @@ def has_positive_runtime_claim(text: str) -> bool:
     return any(phrase in lowered for phrase in blocked_phrases)
 
 
+def load_contract_test_module(module_name: str):
+    path = REPO_ROOT / "tests" / "contract" / f"{module_name}.py"
+    spec = importlib.util.spec_from_file_location(module_name, path)
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def test_required_file_list_is_exact_approved_scope() -> None:
     assert REQUIRED_BOOTSTRAP_FILES == EXPECTED_BOOTSTRAP_FILES
-    assert len(REQUIRED_BOOTSTRAP_FILES) == 20
-    assert len(set(REQUIRED_BOOTSTRAP_FILES)) == 20
+    assert len(REQUIRED_BOOTSTRAP_FILES) == 28
+    assert len(set(REQUIRED_BOOTSTRAP_FILES)) == 28
 
 
 def test_every_required_file_exists_and_is_not_empty() -> None:
@@ -149,7 +164,28 @@ def test_flowise_schema_references_exist() -> None:
         assert (REPO_ROOT / schema_path).exists()
 
 
-def test_state_api_contract_stub_flags() -> None:
+def test_state_api_contract_design_flags() -> None:
     data = yaml.safe_load(read_text("state_api/runtime_stub/state_api_contract.yaml"))
-    assert data["status"] == "contract_stub_only"
+    assert data["status"] == "contract_only"
     assert data["runtime_claim"] is False
+    assert data["implementation_status"] == "none"
+
+
+def test_state_api_contract_design_modules_are_exercised_by_bootstrap_workflow() -> None:
+    lifecycle = load_contract_test_module("test_state_api_lifecycle_contract")
+    lifecycle.test_allowed_lifecycle_transitions_are_explicit_in_schema()
+    lifecycle.test_allowed_lifecycle_transitions_are_explicit_in_yaml_contract()
+    lifecycle.test_forbidden_transitions_are_not_listed()
+    lifecycle.test_terminal_states_have_no_outgoing_transitions()
+
+    lane = load_contract_test_module("test_state_api_lane_taxonomy")
+    lane.test_flowiseai_pm_lane_is_accepted_by_relevant_json_schema_enums()
+    lane.test_flowiseai_pm_lane_is_bound_in_execution_mapping()
+    lane.test_state_api_contract_uses_flowiseai_pm_lane_taxonomy()
+
+    operations = load_contract_test_module("test_state_api_operation_contract")
+    operations.test_required_operations_are_represented_in_state_api_contract()
+    operations.test_required_resources_and_schema_refs_are_represented()
+    operations.test_mutating_operations_have_idempotency_contract()
+    operations.test_state_api_contract_remains_runtime_neutral()
+    operations.test_retry_representation_uses_task_metadata_plus_audit_event_only()
