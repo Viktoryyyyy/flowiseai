@@ -1,0 +1,78 @@
+{
+  "flow_schema_version": "1.0.0",
+  "flow_id": "flowiseai_pm_orchestration_root_bootstrap_v1",
+  "name": "FlowiseAI PM Orchestration Root Flow Bootstrap v1",
+  "status": "skeleton_contract",
+  "runtime_claim": false,
+  "deployment_id": null,
+  "runtime_environment": "none",
+  "nodes": [
+    {
+      "id": "intake",
+      "type": "abstract_gate",
+      "purpose": "receive task contract and verify required fields"
+    },
+    {
+      "id": "pm_l2_phase_owner",
+      "type": "abstract_role",
+      "purpose": "phase scope and authority decision"
+    },
+    {
+      "id": "pm_l3_delivery_validation_owner",
+      "type": "abstract_role",
+      "purpose": "delivery decomposition and evidence validation"
+    },
+    {
+      "id": "subchat_dispatch",
+      "type": "abstract_router",
+      "purpose": "dispatch one role-specific Sub-chat handoff"
+    },
+    {
+      "id": "validation_gate",
+      "type": "abstract_gate",
+      "purpose": "validate schema, scope, security, and runtime boundary"
+    },
+    {
+      "id": "return_to_pm_l3",
+      "type": "abstract_return",
+      "purpose": "return normalized role output to PM L3"
+    }
+  ],
+  "edges": [
+    {
+      "from": "intake",
+      "to": "pm_l2_phase_owner"
+    },
+    {
+      "from": "pm_l2_phase_owner",
+      "to": "pm_l3_delivery_validation_owner"
+    },
+    {
+      "from": "pm_l3_delivery_validation_owner",
+      "to": "subchat_dispatch"
+    },
+    {
+      "from": "subchat_dispatch",
+      "to": "validation_gate"
+    },
+    {
+      "from": "validation_gate",
+      "to": "return_to_pm_l3"
+    },
+    {
+      "from": "return_to_pm_l3",
+      "to": "pm_l3_delivery_validation_owner"
+    }
+  ],
+  "schema_refs": {
+    "task": "contracts/schemas/task.schema.json",
+    "handoff": "contracts/schemas/handoff.schema.json",
+    "role_output": "contracts/schemas/role-output.schema.json",
+    "audit_event": "contracts/schemas/audit-event.schema.json"
+  },
+  "runtime_notes": [
+    "This descriptor has no Flowise deployment id.",
+    "This descriptor has no runtime environment.",
+    "It is a bootstrap skeleton contract only."
+  ]
+}

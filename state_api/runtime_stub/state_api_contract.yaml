@@ -1,0 +1,75 @@
+schema_version: "1.0.0"
+status: "contract_stub_only"
+runtime_claim: false
+implementation_status: "none"
+service_binding: "not_applicable"
+auth_secret: "none"
+deployment: "none"
+
+entities:
+  Task:
+    schema_ref: "contracts/schemas/task.schema.json"
+    purpose: "unit of assigned PM work with scope and authority"
+  Handoff:
+    schema_ref: "contracts/schemas/handoff.schema.json"
+    purpose: "self-contained role context transfer"
+  RoleOutput:
+    schema_ref: "contracts/schemas/role-output.schema.json"
+    purpose: "normalized result returned by a role"
+  AuditEvent:
+    schema_ref: "contracts/schemas/audit-event.schema.json"
+    purpose: "append-only evidence and outcome record"
+  StateSnapshot:
+    purpose: "read model summarizing task, handoff, role output, audit, and validation state"
+
+abstract_operations:
+  create_task:
+    input_entity: "Task"
+    output: "task_ref"
+    side_effect_runtime: false
+  read_task:
+    input: "task_ref"
+    output_entity: "Task"
+    side_effect_runtime: false
+  transition_task_state:
+    input: "task_ref plus target_state"
+    output: "state_transition_record"
+    side_effect_runtime: false
+  persist_handoff:
+    input_entity: "Handoff"
+    output: "handoff_ref"
+    side_effect_runtime: false
+  persist_role_output:
+    input_entity: "RoleOutput"
+    output: "role_output_ref"
+    side_effect_runtime: false
+  append_audit_event:
+    input_entity: "AuditEvent"
+    output: "audit_event_ref"
+    side_effect_runtime: false
+  read_state_snapshot:
+    input: "task_ref"
+    output_entity: "StateSnapshot"
+    side_effect_runtime: false
+
+state_enums:
+  - "created"
+  - "assigned"
+  - "running"
+  - "blocked"
+  - "completed"
+  - "validation_pending"
+  - "validated"
+  - "failed"
+
+schema_refs:
+  task: "contracts/schemas/task.schema.json"
+  handoff: "contracts/schemas/handoff.schema.json"
+  role_output: "contracts/schemas/role-output.schema.json"
+  audit_event: "contracts/schemas/audit-event.schema.json"
+
+runtime_boundary:
+  server_url: "none"
+  auth_mode: "none"
+  runtime_config: "not_applicable"
+  deployment_claim: "none"

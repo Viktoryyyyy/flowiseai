@@ -1,0 +1,136 @@
+schema_version: "1.0.0"
+system_name: "FlowiseAI PM Orchestration"
+phase: "bootstrap_v1"
+repository_full_name: "Viktoryyyyy/flowiseai"
+base_ref: "origin/main"
+base_sha: "255b537488084b3dbc10f777babda98a70ad979a"
+lane: "integration"
+execution_mode: "browser_chatgpt_github_direct"
+
+roles:
+  PM_L1_CONTROL_TOWER:
+    responsibility: "user objective, route selection, final acceptance context"
+    output_contract: "role-output"
+  PM_L2_PHASE_OWNER:
+    responsibility: "phase scope, authority boundary, merge authority, server-apply authority"
+    output_contract: "role-output"
+  PM_L3_DELIVERY_VALIDATION_OWNER:
+    responsibility: "delivery decomposition, Sub-chat routing, evidence validation"
+    output_contract: "role-output"
+  SUBCHAT_SPEC_CONTRACT_DESIGNER:
+    responsibility: "contract and skeleton design package"
+    expected_output_type: "spec_package"
+  SUBCHAT_IMPLEMENTATION:
+    responsibility: "approved repository implementation on feature branch"
+    expected_output_type: "implementation_report"
+  SUBCHAT_VALIDATION:
+    responsibility: "artifact and CI validation"
+    expected_output_type: "validation_report"
+
+role_sequence:
+  - "PM_L1_CONTROL_TOWER"
+  - "PM_L2_PHASE_OWNER"
+  - "PM_L3_DELIVERY_VALIDATION_OWNER"
+  - "SUBCHAT_SPEC_CONTRACT_DESIGNER"
+  - "SUBCHAT_IMPLEMENTATION"
+  - "SUBCHAT_VALIDATION"
+  - "PM_L3_DELIVERY_VALIDATION_OWNER"
+  - "PM_L2_PHASE_OWNER"
+
+allowed_transitions:
+  - from: "PM_L1_CONTROL_TOWER"
+    to: "PM_L2_PHASE_OWNER"
+  - from: "PM_L2_PHASE_OWNER"
+    to: "PM_L3_DELIVERY_VALIDATION_OWNER"
+  - from: "PM_L3_DELIVERY_VALIDATION_OWNER"
+    to: "SUBCHAT_SPEC_CONTRACT_DESIGNER"
+  - from: "PM_L3_DELIVERY_VALIDATION_OWNER"
+    to: "SUBCHAT_IMPLEMENTATION"
+  - from: "PM_L3_DELIVERY_VALIDATION_OWNER"
+    to: "SUBCHAT_VALIDATION"
+  - from: "SUBCHAT_SPEC_CONTRACT_DESIGNER"
+    to: "PM_L3_DELIVERY_VALIDATION_OWNER"
+  - from: "SUBCHAT_IMPLEMENTATION"
+    to: "PM_L3_DELIVERY_VALIDATION_OWNER"
+  - from: "SUBCHAT_VALIDATION"
+    to: "PM_L3_DELIVERY_VALIDATION_OWNER"
+  - from: "PM_L3_DELIVERY_VALIDATION_OWNER"
+    to: "PM_L2_PHASE_OWNER"
+
+validation_gates:
+  design_gate:
+    required: true
+    evidence: "spec_package"
+  implementation_gate:
+    required: true
+    evidence: "implementation_report"
+  contract_validation_gate:
+    required: true
+    evidence: "GitHub Actions tests workflow"
+  pm_l2_review_gate:
+    required: true
+    evidence: "PR scope and CI evidence reviewed by PM L2"
+
+authority_boundary:
+  merge_authority: "PM_L2_ONLY"
+  direct_main_write_allowed: false
+  branch_creation_allowed: true
+  commit_allowed: true
+  pull_request_allowed: true
+  server_apply_authority: "NONE"
+  runtime_allowed: "no"
+  allowed_branch: "integration/flowiseai-bootstrap-v1"
+  allowed_repo: "Viktoryyyyy/flowiseai"
+
+shared_file_lock:
+  required: true
+  lock_id: "shared-flowiseai-bootstrap-v1"
+  owner_lane: "integration"
+  task_id: "flowiseai_bootstrap_v1"
+  branch: "integration/flowiseai-bootstrap-v1"
+  lock_until: "PR merged | PR closed | PM L2 release"
+
+artifact_outputs:
+  docs:
+    - "README.md"
+    - "docs/bootstrap/system_bootstrap_v1.md"
+    - "docs/architecture-overview.md"
+    - "docs/pm_l2_flow_tz.yaml"
+    - "00_CORE_CONSTITUTION/repository-principles.md"
+    - "ci/README.md"
+    - "security/credentials-policy.md"
+  schemas:
+    - "contracts/schemas/task.schema.json"
+    - "contracts/schemas/role-output.schema.json"
+    - "contracts/schemas/handoff.schema.json"
+    - "contracts/schemas/audit-event.schema.json"
+  bindings:
+    - "contracts/bindings/execution_mapping.yaml"
+  flowise_skeletons:
+    - "flowise/orchestrator/root_flow.json"
+    - "flowise/orchestrator/router.json"
+    - "flowise/subchat/subchat_contract.json"
+  state_api_contract_stub:
+    - "state_api/runtime_stub/state_api_contract.yaml"
+  validation_tests:
+    - "tests/contract/test_json_schemas.py"
+    - "tests/contract/test_yaml_contracts.py"
+    - "tests/contract/test_required_bootstrap_files.py"
+
+schema_refs:
+  task: "contracts/schemas/task.schema.json"
+  role_output: "contracts/schemas/role-output.schema.json"
+  handoff: "contracts/schemas/handoff.schema.json"
+  audit_event: "contracts/schemas/audit-event.schema.json"
+
+flowise_skeleton_paths:
+  root_flow: "flowise/orchestrator/root_flow.json"
+  router: "flowise/orchestrator/router.json"
+  subchat_contract: "flowise/subchat/subchat_contract.json"
+
+forbidden_actions:
+  - "direct_main_write"
+  - "server_apply"
+  - "runtime_smoke"
+  - "secrets"
+  - "scope_widening"
