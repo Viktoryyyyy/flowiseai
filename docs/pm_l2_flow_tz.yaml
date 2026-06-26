@@ -86,7 +86,7 @@ shared_file_lock:
   required: true
   lock_id: "shared-flowiseai-bootstrap-v1"
   owner_lane: "integration"
-  task_id: "flowiseai_bootstrap_v1"
+  task_id: "flowiseai_bootstrap_v1_implementation"
   branch: "integration/flowiseai-bootstrap-v1"
   lock_until: "PR merged | PR closed | PM L2 release"
 
