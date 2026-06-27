@@ -23,7 +23,7 @@ def _decision(decision_type: str, **overrides: object) -> dict:
         "created_at": CREATED_AT,
     }
     decision.update(overrides)
-    return {"pm_l3_decision": decision}
+    return decision
 
 
 def test_route_next_role_produces_role_task_request_artifact() -> None:
