@@ -1,0 +1,81 @@
+schema_version: "1.0.0"
+registry_type: status_taxonomy
+project: "MOEX Bot + FlowiseAI"
+phase: "Phase 8"
+lane: flowiseai_pm_orchestration
+
+status_groups:
+  flowise_run_request:
+    created:
+      terminal: false
+      description: request envelope created but not accepted by execution surface
+    queued:
+      terminal: false
+      description: request is waiting for execution
+    accepted:
+      terminal: false
+      description: request accepted by execution surface
+    running:
+      terminal: false
+      description: execution is active
+    blocked:
+      terminal: true
+      requires_blocker: true
+      description: execution stopped on a blocker
+    failed:
+      terminal: true
+      requires_blocker: true
+      description: execution failed
+    succeeded:
+      terminal: true
+      description: execution completed successfully
+    cancelled:
+      terminal: true
+      description: execution was intentionally cancelled
+
+  flowise_run_result:
+    succeeded:
+      terminal: true
+      allowed_outcome: completed
+    blocked:
+      terminal: true
+      allowed_outcome: blocked
+      requires_blocker: true
+    failed:
+      terminal: true
+      allowed_outcome: failed
+      requires_blocker: true
+    cancelled:
+      terminal: true
+      allowed_outcome: no_op
+
+  pm_l3_task_envelope:
+    created:
+      terminal: false
+    assigned:
+      terminal: false
+    validation_pending:
+      terminal: false
+    completed:
+      terminal: true
+    blocked:
+      terminal: true
+      requires_blocker: true
+
+consistency_rules:
+  - rule_id: blocked_status_requires_blocker
+    applies_to:
+      - flowise_run_request.blocked
+      - flowise_run_result.blocked
+      - pm_l3_task_envelope.blocked
+    requirement: blocker_code must be present and must exist in blocker_taxonomy.yaml
+  - rule_id: failed_result_requires_blocker
+    applies_to:
+      - flowise_run_result.failed
+    requirement: failed result must carry at least one blocker_code
+  - rule_id: succeeded_result_has_no_blockers
+    applies_to:
+      - flowise_run_result.succeeded
+    requirement: blockers must be empty
+  - rule_id: phase_7_forbidden_actions_remain_blocked
+    requirement: server_changes, deployment, Flowise runtime modification, production graph changes, secrets, direct main write, and merge without PM L2 authority cannot be represented as allowed status

@@ -1,0 +1,65 @@
+schema_version: "1.0.0"
+registry_type: blocker_taxonomy
+project: "MOEX Bot + FlowiseAI"
+phase: "Phase 8"
+lane: flowiseai_pm_orchestration
+
+blocker_codes:
+  scope_violation:
+    severity: blocking
+    category: scope
+    description: changed or requested file path is outside approved Phase 8 scope
+  authority_boundary_violation:
+    severity: blocking
+    category: authority
+    description: requested action exceeds PM L2 authority boundary
+  github_mutation_blocked:
+    severity: blocking
+    category: github
+    description: approved GitHub mutation could not be completed by the available tool surface
+  ci_failed_implementation:
+    severity: blocking
+    category: ci
+    description: CI ran on latest PR head SHA and failed due to implementation or contract test behavior
+  ci_failed_scope_widening_required:
+    severity: blocking
+    category: ci
+    description: CI fix requires changing files outside approved Phase 8 scope
+  handoff_incomplete:
+    severity: blocking
+    category: handoff
+    description: required self-contained handoff fields are missing
+  handoff_state_stale:
+    severity: blocking
+    category: handoff
+    description: repository state changed after handoff and must be refreshed
+  forbidden_action_requested:
+    severity: blocking
+    category: forbidden_action
+    description: task requests an action explicitly forbidden by Phase 8
+  runtime_or_server_action_blocked:
+    severity: blocking
+    category: runtime_boundary
+    description: server, deployment, runtime smoke, or Flowise runtime mutation was requested
+  schema_architecture_redesign_required:
+    severity: blocking
+    category: architecture
+    description: schema cannot be completed without redesigning Phase 3, 4, 5, or 6 architecture
+
+forbidden_action_map:
+  server_changes: runtime_or_server_action_blocked
+  deployment: runtime_or_server_action_blocked
+  flowise_runtime_modification: runtime_or_server_action_blocked
+  production_graph_changes: runtime_or_server_action_blocked
+  secrets: forbidden_action_requested
+  direct_main_write: authority_boundary_violation
+  merge_without_pm_l2_authority: authority_boundary_violation
+  phase_3_4_5_6_architecture_change: schema_architecture_redesign_required
+
+consistency_rules:
+  - rule_id: blocked_status_must_reference_known_blocker
+    requirement: any blocked status must carry a blocker_code listed under blocker_codes
+  - rule_id: forbidden_actions_are_fail_closed
+    requirement: every forbidden_action_map value resolves to a blocking blocker code
+  - rule_id: no_warning_for_authority_or_runtime_boundary
+    requirement: authority and runtime boundary blockers must remain severity blocking

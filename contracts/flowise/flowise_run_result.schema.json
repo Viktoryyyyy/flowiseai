@@ -1,0 +1,275 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "contracts/flowise/flowise_run_result.schema.json",
+  "title": "FlowiseRunResult Contract",
+  "description": "Contract-only result envelope returned by a Flowise PM orchestration flow. Correlation and idempotency fields must echo the originating FlowiseRunRequest.",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "result_id",
+    "request_id",
+    "correlation_id",
+    "idempotency_key",
+    "project",
+    "phase",
+    "lane",
+    "execution_mode",
+    "status",
+    "outcome",
+    "output_payload",
+    "blockers",
+    "authority_boundary",
+    "started_at",
+    "completed_at"
+  ],
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "result_id": {
+      "type": "string",
+      "pattern": "^flowise-run-result-[A-Za-z0-9._-]+$"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^flowise-run-request-[A-Za-z0-9._-]+$"
+    },
+    "correlation_id": {
+      "type": "string",
+      "pattern": "^corr-[A-Za-z0-9._-]+$"
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 8
+    },
+    "project": {
+      "type": "string",
+      "const": "MOEX Bot + FlowiseAI"
+    },
+    "phase": {
+      "type": "string",
+      "const": "Phase 8"
+    },
+    "lane": {
+      "type": "string",
+      "enum": [
+        "flowiseai_pm_orchestration"
+      ]
+    },
+    "execution_mode": {
+      "type": "string",
+      "enum": [
+        "browser_chatgpt_github_direct",
+        "route_b_n8n_universal_role_runner"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "succeeded",
+        "blocked",
+        "failed",
+        "cancelled"
+      ]
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "blocked",
+        "failed",
+        "no_op"
+      ]
+    },
+    "output_payload": {
+      "type": "object",
+      "required": [
+        "role_output_type",
+        "summary"
+      ],
+      "properties": {
+        "role_output_type": {
+          "type": "string",
+          "enum": [
+            "implementation_report",
+            "validation_report",
+            "pm_l3_evidence_package",
+            "none"
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": []
+        }
+      },
+      "additionalProperties": true
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/blocker_ref"
+      }
+    },
+    "authority_boundary": {
+      "type": "object",
+      "required": [
+        "merge_performed",
+        "direct_main_write_performed",
+        "server_apply_performed",
+        "deployment_performed",
+        "runtime_modification_performed",
+        "production_graph_change_performed",
+        "secrets_exposed"
+      ],
+      "properties": {
+        "merge_performed": {
+          "type": "boolean",
+          "const": false
+        },
+        "direct_main_write_performed": {
+          "type": "boolean",
+          "const": false
+        },
+        "server_apply_performed": {
+          "type": "boolean",
+          "const": false
+        },
+        "deployment_performed": {
+          "type": "boolean",
+          "const": false
+        },
+        "runtime_modification_performed": {
+          "type": "boolean",
+          "const": false
+        },
+        "production_graph_change_performed": {
+          "type": "boolean",
+          "const": false
+        },
+        "secrets_exposed": {
+          "type": "boolean",
+          "const": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "started_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "completed_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "blocked"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "outcome": {
+            "const": "blocked"
+          },
+          "blockers": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "failed"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "outcome": {
+            "const": "failed"
+          },
+          "blockers": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "succeeded"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "outcome": {
+            "const": "completed"
+          },
+          "blockers": {
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "blocker_ref": {
+      "type": "object",
+      "required": [
+        "blocker_code",
+        "severity",
+        "message"
+      ],
+      "properties": {
+        "blocker_code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "blocking",
+            "warning"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
