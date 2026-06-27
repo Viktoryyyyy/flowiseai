@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  contract-tests:
+  contract-and-runtime-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,16 +21,13 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install test dependencies
+      - name: Install deterministic test dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest jsonschema PyYAML
+          python -m pip install -r requirements-dev.txt
 
-      - name: Run JSON schema contract tests
-        run: python -m pytest tests/contract/test_json_schemas.py
+      - name: Run contract tests
+        run: python -m pytest tests/contract
 
-      - name: Run YAML contract tests
-        run: python -m pytest tests/contract/test_yaml_contracts.py
-
-      - name: Run required bootstrap file tests
-        run: python -m pytest tests/contract/test_required_bootstrap_files.py
+      - name: Run runtime tests
+        run: python -m pytest tests/runtime
