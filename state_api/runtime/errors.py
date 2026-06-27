@@ -4,6 +4,14 @@ from dataclasses import dataclass
 from typing import Any
 
 
+_STORED_ERROR_STATUS_CODE_FALLBACKS = {
+    "validation_error": 422,
+    "not_found": 404,
+    "conflict": 409,
+    "lease_error": 409,
+}
+
+
 @dataclass(slots=True)
 class StateApiError(Exception):
     """Base runtime error with a stable machine-readable code."""
@@ -15,6 +23,32 @@ class StateApiError(Exception):
 
     def __str__(self) -> str:
         return f"{self.code}: {self.message}"
+
+
+def replay_stored_state_api_error(error: dict[str, Any]) -> StateApiError:
+    """Rebuild a stored idempotency failure without changing its semantics."""
+
+    code = error.get("code")
+    if not isinstance(code, str) or not code:
+        code = "runtime_error"
+
+    message = error.get("message")
+    if not isinstance(message, str) or not message:
+        message = "stored idempotency failure"
+
+    details = error.get("details")
+    if not isinstance(details, dict):
+        details = {}
+
+    raw_status_code = error.get("status_code")
+    if isinstance(raw_status_code, int) and not isinstance(raw_status_code, bool) and 100 <= raw_status_code <= 599:
+        status_code = raw_status_code
+    else:
+        # Older local/dev records did not store status_code; keep known runtime
+        # error classes on their original HTTP semantics when replayed.
+        status_code = _STORED_ERROR_STATUS_CODE_FALLBACKS.get(code, 400)
+
+    return StateApiError(code, message, status_code, details)
 
 
 class RuntimeValidationError(StateApiError):
