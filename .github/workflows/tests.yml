@@ -26,8 +26,17 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements-dev.txt
 
-      - name: Run contract tests
-        run: python -m pytest tests/contract
+      - name: Run JSON schema contract tests
+        run: python -m pytest tests/contract/test_json_schemas.py
+
+      - name: Run YAML contract tests
+        run: python -m pytest tests/contract/test_yaml_contracts.py
+
+      - name: Run required bootstrap file tests
+        run: python -m pytest tests/contract/test_required_bootstrap_files.py
+
+      - name: Run State API contract tests
+        run: python -m pytest tests/contract/test_state_api_lifecycle_contract.py tests/contract/test_state_api_lane_taxonomy.py tests/contract/test_state_api_operation_contract.py
 
       - name: Run runtime tests
         run: python -m pytest tests/runtime
