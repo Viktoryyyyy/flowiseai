@@ -82,7 +82,12 @@ class UniversalRoleRunner:
         require_idempotency_key(idempotency_key, "persist_role_output")
         validate_role_output(role_output)
         return self.operations.persist_role_output(
-            role_output_to_state_api_payload(role_output),
+            role_output_to_state_api_payload(
+                role_output,
+                project=self.config.project,
+                lane="flowiseai_pm_orchestration",
+                execution_mode=self.config.execution_mode,
+            ),
             idempotency_key=idempotency_key,
         )
 
