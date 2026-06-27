@@ -76,6 +76,25 @@ def test_runner_lifecycle_uses_state_api_public_operations(operations) -> None:
     assert persisted["role_output"]["structured_payload"]["output_type"] == "implementation_report"
 
 
+def test_persist_role_output_defaults_scope_for_contract_payload_without_metadata(operations) -> None:
+    runner = UniversalRoleRunner(operations)
+    runner.create_role_task(_role_task("role-task-raw-output"), idempotency_key="urr-raw-output-create")
+    role_output = build_role_output(
+        role_output_id="role-output-raw-contract",
+        role_task_id="role-task-raw-output",
+        producing_role="SUBCHAT_IMPLEMENTATION",
+        output_type="implementation_report",
+        payload={"status": "pass"},
+        created_at=CREATED_AT,
+    )
+    role_output.pop("metadata")
+
+    persisted = runner.persist_role_output(role_output, idempotency_key="urr-raw-output-persist")
+
+    assert persisted["role_output"]["lane"] == "flowiseai_pm_orchestration"
+    assert persisted["role_output"]["execution_mode"] == "browser_chatgpt_github_direct"
+
+
 def test_claim_lease_blocks_second_claim_until_release(operations) -> None:
     runner = UniversalRoleRunner(operations)
     runner.create_role_task(_role_task("role-task-lease"), idempotency_key="urr-lease-create")
