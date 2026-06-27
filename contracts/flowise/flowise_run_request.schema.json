@@ -1,0 +1,264 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "contracts/flowise/flowise_run_request.schema.json",
+  "title": "FlowiseRunRequest Contract",
+  "description": "Contract-only request envelope for invoking a Flowise PM orchestration flow without granting repository, server, deployment, or runtime mutation authority.",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "request_id",
+    "correlation_id",
+    "idempotency_key",
+    "project",
+    "phase",
+    "lane",
+    "execution_mode",
+    "source_role",
+    "target_flow",
+    "task_id",
+    "pm_l3_task_envelope",
+    "authority_boundary",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^flowise-run-request-[A-Za-z0-9._-]+$"
+    },
+    "correlation_id": {
+      "type": "string",
+      "pattern": "^corr-[A-Za-z0-9._-]+$"
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 8
+    },
+    "project": {
+      "type": "string",
+      "const": "MOEX Bot + FlowiseAI"
+    },
+    "phase": {
+      "type": "string",
+      "const": "Phase 8"
+    },
+    "lane": {
+      "type": "string",
+      "enum": [
+        "flowiseai_pm_orchestration"
+      ]
+    },
+    "execution_mode": {
+      "type": "string",
+      "enum": [
+        "browser_chatgpt_github_direct",
+        "route_b_n8n_universal_role_runner"
+      ]
+    },
+    "source_role": {
+      "type": "string",
+      "enum": [
+        "PM_L2_PHASE_OWNER",
+        "PM_L3_DELIVERY_VALIDATION_OWNER",
+        "SUBCHAT_IMPLEMENTATION",
+        "SUBCHAT_VALIDATION"
+      ]
+    },
+    "target_flow": {
+      "type": "object",
+      "required": [
+        "flow_kind",
+        "flow_identifier",
+        "runtime_url"
+      ],
+      "properties": {
+        "flow_kind": {
+          "type": "string",
+          "enum": [
+            "agentflow_v2",
+            "chatflow",
+            "none"
+          ]
+        },
+        "flow_identifier": {
+          "type": "string",
+          "minLength": 1
+        },
+        "runtime_url": {
+          "type": "string",
+          "const": "none"
+        }
+      },
+      "additionalProperties": false
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "pm_l3_task_envelope": {
+      "type": "object",
+      "required": [
+        "envelope_id",
+        "correlation_id",
+        "task_id",
+        "authority_boundary"
+      ],
+      "properties": {
+        "envelope_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "correlation_id": {
+          "type": "string",
+          "pattern": "^corr-[A-Za-z0-9._-]+$"
+        },
+        "task_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "authority_boundary": {
+          "type": "object",
+          "required": [
+            "direct_main_write_allowed",
+            "server_apply_allowed",
+            "deployment_allowed",
+            "runtime_allowed"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "input_payload": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "authority_boundary": {
+      "type": "object",
+      "required": [
+        "merge_authority",
+        "direct_main_write_allowed",
+        "server_apply_allowed",
+        "deployment_allowed",
+        "runtime_modification_allowed",
+        "production_graph_change_allowed",
+        "secrets_allowed"
+      ],
+      "properties": {
+        "merge_authority": {
+          "type": "string",
+          "const": "PM_L2_ONLY"
+        },
+        "direct_main_write_allowed": {
+          "type": "boolean",
+          "const": false
+        },
+        "server_apply_allowed": {
+          "type": "boolean",
+          "const": false
+        },
+        "deployment_allowed": {
+          "type": "boolean",
+          "const": false
+        },
+        "runtime_modification_allowed": {
+          "type": "boolean",
+          "const": false
+        },
+        "production_graph_change_allowed": {
+          "type": "boolean",
+          "const": false
+        },
+        "secrets_allowed": {
+          "type": "boolean",
+          "const": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "created",
+        "queued",
+        "accepted",
+        "running",
+        "blocked",
+        "failed",
+        "succeeded",
+        "cancelled"
+      ]
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/blocker_ref"
+      },
+      "default": []
+    },
+    "created_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "blocked"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "blockers"
+        ],
+        "properties": {
+          "blockers": {
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "blocker_ref": {
+      "type": "object",
+      "required": [
+        "blocker_code",
+        "severity",
+        "message"
+      ],
+      "properties": {
+        "blocker_code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "blocking",
+            "warning"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
