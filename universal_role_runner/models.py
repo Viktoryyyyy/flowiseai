@@ -50,6 +50,7 @@ GITHUB_REQUEST_OPERATION_TYPES = {
     "commit_approved_scope",
     "open_pull_request",
     "verify_ci",
+    "merge_request_boundary",
     "update_pull_request_metadata",
 }
 
