@@ -5,6 +5,9 @@ import copy
 from .models import CONTRACT_VERSION, PROJECT_NAME, JsonDict
 from .schema_validation import validate_pm_l3_decision, validate_role_output
 
+DEFAULT_LANE = "flowiseai_pm_orchestration"
+DEFAULT_EXECUTION_MODE = "browser_chatgpt_github_direct"
+
 
 def build_role_output(
     *,
@@ -18,8 +21,8 @@ def build_role_output(
     evidence_refs: list[JsonDict] | None = None,
     blockers: list[JsonDict] | None = None,
     project: str = PROJECT_NAME,
-    lane: str = "flowiseai_pm_orchestration",
-    execution_mode: str = "browser_chatgpt_github_direct",
+    lane: str = DEFAULT_LANE,
+    execution_mode: str = DEFAULT_EXECUTION_MODE,
     metadata: JsonDict | None = None,
 ) -> JsonDict:
     merged_metadata: JsonDict = {
@@ -82,8 +85,8 @@ def role_output_to_state_api_payload(
     payload["task_id"] = validated["role_task_id"]
     payload["role"] = validated["producing_role"]
     payload["project"] = project or str(metadata.get("project") or PROJECT_NAME)
-    payload["lane"] = lane or str(metadata.get("lane") or "")
-    payload["execution_mode"] = execution_mode or str(metadata.get("execution_mode") or "")
+    payload["lane"] = lane or str(metadata.get("lane") or DEFAULT_LANE)
+    payload["execution_mode"] = execution_mode or str(metadata.get("execution_mode") or DEFAULT_EXECUTION_MODE)
     return payload
 
 
@@ -95,8 +98,8 @@ def build_pm_l3_decision_role_output(
     created_at: str,
     producing_role: str = "PM_L3_DELIVERY_VALIDATION_OWNER",
     project: str = PROJECT_NAME,
-    lane: str = "flowiseai_pm_orchestration",
-    execution_mode: str = "browser_chatgpt_github_direct",
+    lane: str = DEFAULT_LANE,
+    execution_mode: str = DEFAULT_EXECUTION_MODE,
     evidence_refs: list[JsonDict] | None = None,
 ) -> JsonDict:
     validate_pm_l3_decision(decision)
