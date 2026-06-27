@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "contracts/pm/pm_l3_task_envelope.schema.json",
+  "title": "PM L3 Task Envelope Contract",
+  "description": "Self-contained task envelope sent from PM L3 to an execution or validation role for Phase 8 contract artifact work.",
+  "type": "object",
+  "required": [
+    "envelope_version",
+    "envelope_id",
+    "correlation_id",
+    "task_id",
+    "project",
+    "phase",
+    "lane",
+    "execution_mode",
+    "assigned_role",
+    "repository_full_name",
+    "base_ref",
+    "branch_name",
+    "approved_file_scope",
+    "forbidden_actions",
+    "authority_boundary",
+    "contract_refs",
+    "acceptance_criteria",
+    "stop_conditions",
+    "created_at"
+  ],
+  "properties": {
+    "envelope_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "envelope_id": {
+      "type": "string",
+      "pattern": "^pm-l3-task-envelope-[A-Za-z0-9._-]+$"
+    },
+    "correlation_id": {
+      "type": "string",
+      "pattern": "^corr-[A-Za-z0-9._-]+$"
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project": {
+      "type": "string",
+      "const": "MOEX Bot + FlowiseAI"
+    },
+    "phase": {
+      "type": "string",
+      "const": "Phase 8"
+    },
+    "lane": {
+      "type": "string",
+      "enum": [
+        "flowiseai_pm_orchestration"
+      ]
+    },
+    "execution_mode": {
+      "type": "string",
+      "enum": [
+        "browser_chatgpt_github_direct",
+        "route_b_n8n_universal_role_runner"
+      ]
+    },
+    "assigned_role": {
+      "type": "string",
+      "enum": [
+        "SUBCHAT_IMPLEMENTATION",
+        "SUBCHAT_VALIDATION",
+        "PM_L3_DELIVERY_VALIDATION_OWNER"
+      ]
+    },
+    "repository_full_name": {
+      "type": "string",
+      "const": "Viktoryyyyy/flowiseai"
+    },
+    "base_ref": {
+      "type": "string",
+      "const": "origin/main"
+    },
+    "branch_name": {
+      "type": "string",
+      "pattern": "^flowiseai-pm/[A-Za-z0-9._/-]+$"
+    },
+    "approved_file_scope": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "forbidden_actions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "server_changes",
+          "deployment",
+          "flowise_runtime_modification",
+          "production_graph_changes",
+          "secrets",
+          "direct_main_write",
+          "merge_without_pm_l2_authority",
+          "phase_3_4_5_6_architecture_change"
+        ]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "authority_boundary": {
+      "type": "object",
+      "required": [
+        "merge_authority",
+        "direct_main_write_allowed",
+        "server_apply_allowed",
+        "deployment_allowed",
+        "runtime_allowed"
+      ],
+      "properties": {
+        "merge_authority": {
+          "type": "string",
+          "const": "PM_L2_ONLY"
+        },
+        "direct_main_write_allowed": {
+          "type": "boolean",
+          "const": false
+        },
+        "server_apply_allowed": {
+          "type": "boolean",
+          "const": false
+        },
+        "deployment_allowed": {
+          "type": "boolean",
+          "const": false
+        },
+        "runtime_allowed": {
+          "type": "boolean",
+          "const": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "contract_refs": {
+      "type": "object",
+      "required": [
+        "flowise_run_request_schema",
+        "flowise_run_result_schema",
+        "status_taxonomy",
+        "blocker_taxonomy",
+        "correlation_model"
+      ],
+      "properties": {
+        "flowise_run_request_schema": {
+          "type": "string",
+          "const": "contracts/flowise/flowise_run_request.schema.json"
+        },
+        "flowise_run_result_schema": {
+          "type": "string",
+          "const": "contracts/flowise/flowise_run_result.schema.json"
+        },
+        "status_taxonomy": {
+          "type": "string",
+          "const": "contracts/taxonomy/status_taxonomy.yaml"
+        },
+        "blocker_taxonomy": {
+          "type": "string",
+          "const": "contracts/taxonomy/blocker_taxonomy.yaml"
+        },
+        "correlation_model": {
+          "type": "string",
+          "const": "contracts/correlation/correlation_model.md"
+        }
+      },
+      "additionalProperties": false
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "stop_conditions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "created_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}
