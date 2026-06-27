@@ -305,12 +305,25 @@ class StateApiOperations:
         now_iso = self._now_iso()
         request_payload = {"lease_id": lease_id, "claimant_id": claimant_id}
 
+        def persist_expired_lease_if_needed() -> None:
+            latest = self.repository.get_lease(lease_id)
+            if latest is None or latest["lease_state"] not in {"active", "renewed"}:
+                return
+            if parse_utc_iso(str(latest["expires_at"])) <= parse_utc_iso(now_iso):
+                expired = copy.deepcopy(latest)
+                expired["lease_state"] = "expired"
+                self.repository.update_lease(expired)
+
         def action() -> JsonDict:
             lease = self.repository.get_lease(lease_id)
             if lease is None:
                 raise NotFoundError("TaskClaimLease", lease_id)
             if lease["lease_state"] not in {"active", "renewed"}:
                 raise LeaseError("lease is not active", {"lease_id": lease_id, "lease_state": lease["lease_state"]})
+            if parse_utc_iso(str(lease["expires_at"])) <= parse_utc_iso(now_iso):
+                lease["lease_state"] = "expired"
+                self.repository.update_lease(lease)
+                raise LeaseError("lease is expired", {"lease_id": lease_id})
             if claimant_id is not None and lease.get("claimant_id") != claimant_id:
                 raise LeaseError("lease claimant does not match", {"lease_id": lease_id})
             released = release_lease_payload(lease=lease, released_at=now_iso)
@@ -329,14 +342,18 @@ class StateApiOperations:
             )
             return {"task_id": str(released["task_id"]), "lease": released}
 
-        return execute_idempotent(
-            repository=self.repository,
-            operation_name=operation_name,
-            idempotency_key=idempotency_key,
-            request_payload=request_payload,
-            now_iso=now_iso,
-            action=action,
-        )
+        try:
+            return execute_idempotent(
+                repository=self.repository,
+                operation_name=operation_name,
+                idempotency_key=idempotency_key,
+                request_payload=request_payload,
+                now_iso=now_iso,
+                action=action,
+            )
+        except LeaseError:
+            persist_expired_lease_if_needed()
+            raise
 
     def persist_handoff(self, handoff: JsonDict, idempotency_key: str | None) -> JsonDict:
         operation_name = "persist_handoff"

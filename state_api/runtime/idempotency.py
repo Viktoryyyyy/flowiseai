@@ -5,7 +5,12 @@ import hashlib
 import json
 from typing import Callable
 
-from .errors import IdempotencyConflictError, RuntimeValidationError, StateApiError
+from .errors import (
+    IdempotencyConflictError,
+    RuntimeValidationError,
+    StateApiError,
+    replay_stored_state_api_error,
+)
 from .models import JsonDict
 from .persistence import SQLiteStateRepository
 from .validation import require_idempotency_key
@@ -63,11 +68,7 @@ def execute_idempotent(
         if existing["status"] == "succeeded" and isinstance(existing.get("result"), dict):
             return copy.deepcopy(existing["result"])
         if existing["status"] == "failed" and isinstance(existing.get("error"), dict):
-            error = existing["error"]
-            raise RuntimeValidationError(
-                "idempotent replay of failed operation",
-                {"operation_name": operation_name, "idempotency_key": key, "error": error},
-            )
+            raise replay_stored_state_api_error(existing["error"])
         raise RuntimeValidationError(
             "idempotency record has unsupported status",
             {"operation_name": operation_name, "idempotency_key": key, "status": existing.get("status")},
@@ -97,7 +98,12 @@ def execute_idempotent(
                     task_id=extract_task_id(request_payload_copy),
                     status="failed",
                     result=None,
-                    error={"code": exc.code, "message": exc.message, "details": exc.details or {}},
+                    error={
+                        "code": exc.code,
+                        "message": exc.message,
+                        "status_code": exc.status_code,
+                        "details": exc.details or {},
+                    },
                     now_iso=now_iso,
                 )
         raise
