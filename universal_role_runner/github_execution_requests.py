@@ -4,11 +4,7 @@ from .models import CONTRACT_VERSION, BoundaryViolationError, JsonDict
 from .schema_validation import validate_github_execution_request
 
 
-_FORBIDDEN_EXECUTION_MESSAGE = (
-    "GitHubExecutionRequest is a local/dev request artifact only; "
-    "the Phase 2E runner must not execute GitHub mutations, server apply, "
-    "deployment, runtime smoke, secrets, or private endpoints."
-)
+_FORBIDDEN_EXECUTION_MESSAGE = "GitHubExecutionRequest execution is blocked in the Phase 2E local/dev runner."
 
 
 def build_github_execution_request(
@@ -25,6 +21,7 @@ def build_github_execution_request(
     created_at: str,
     workflow_name: str | None = "tests",
     draft: bool = False,
+    base_branch: str | None = None,
     metadata: JsonDict | None = None,
 ) -> JsonDict:
     request: JsonDict = {
@@ -40,7 +37,7 @@ def build_github_execution_request(
         "pr_metadata": {
             "title": pr_title,
             "body_required": True,
-            "base_branch": "main",
+            "base_branch": base_branch or base_ref,
             "draft": draft,
         },
         "ci_expectation": {
