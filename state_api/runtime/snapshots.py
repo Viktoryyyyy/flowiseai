@@ -28,20 +28,53 @@ def build_state_snapshot(
         "read_only": True,
         "runtime_claim": False,
         "task_summary": {
-            "task_refs": repository.refs_for_table("tasks", "task_id", project, lane, execution_mode),
-            "total_by_state": repository.task_state_counts(project, lane, execution_mode),
+            "task_refs": repository.refs_for_table(
+                "tasks",
+                "task_id",
+                resolved_project,
+                resolved_lane,
+                resolved_execution_mode,
+            ),
+            "total_by_state": repository.task_state_counts(
+                resolved_project,
+                resolved_lane,
+                resolved_execution_mode,
+            ),
         },
         "handoff_summary": {
-            "handoff_refs": repository.refs_for_table("handoffs", "handoff_id", project, lane, execution_mode),
+            "handoff_refs": repository.refs_for_table(
+                "handoffs",
+                "handoff_id",
+                resolved_project,
+                resolved_lane,
+                resolved_execution_mode,
+            ),
         },
         "role_output_summary": {
-            "role_output_refs": repository.refs_for_table("role_outputs", "role_output_id", project, lane, execution_mode),
+            "role_output_refs": repository.refs_for_table(
+                "role_outputs",
+                "role_output_id",
+                resolved_project,
+                resolved_lane,
+                resolved_execution_mode,
+            ),
         },
         "audit_event_summary": {
-            "audit_event_refs": repository.refs_for_table("audit_events", "event_id", project, lane, execution_mode),
+            "audit_event_refs": repository.refs_for_table(
+                "audit_events",
+                "event_id",
+                resolved_project,
+                resolved_lane,
+                resolved_execution_mode,
+            ),
             "append_only": True,
         },
         "lease_summary": {
-            "active_lease_refs": repository.active_lease_refs(project, lane, execution_mode, generated_at),
+            "active_lease_refs": repository.active_lease_refs(
+                resolved_project,
+                resolved_lane,
+                resolved_execution_mode,
+                generated_at,
+            ),
         },
     }
