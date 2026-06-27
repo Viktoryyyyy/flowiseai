@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from state_api.runtime.errors import LeaseError, RuntimeValidationError
+from state_api.runtime.errors import LeaseError, RuntimeValidationError, StateApiError
 
 from conftest import sample_task
 
@@ -85,6 +85,48 @@ def test_expired_lease_allows_new_claim(operations, clock) -> None:
     )
     assert second["lease"]["task_id"] == "task-expiry"
     assert operations.repository.get_lease(first["lease"]["lease_id"])["lease_state"] == "expired"
+
+
+def test_release_after_lease_expiry_is_rejected_and_marks_expired(operations, clock) -> None:
+    operations.create_task(sample_task("task-release-expired"), idempotency_key="idem-release-expired-create")
+    claim = operations.claim_next_task(
+        lane="flowiseai_pm_orchestration",
+        claimant_role="SUBCHAT_IMPLEMENTATION",
+        claimant_id="worker-a",
+        lease_duration_seconds=1,
+        idempotency_key="idem-release-expired-claim",
+    )
+    lease_id = claim["lease"]["lease_id"]
+    audit_count_before = operations.repository.count_rows("audit_events")
+
+    clock.advance(2)
+
+    with pytest.raises(LeaseError) as release_error:
+        operations.release_task_lease(
+            lease_id,
+            claimant_id="worker-a",
+            idempotency_key="idem-release-expired",
+        )
+
+    assert release_error.value.code == "lease_error"
+    assert release_error.value.status_code == 409
+    lease = operations.repository.get_lease(lease_id)
+    assert lease["lease_state"] == "expired"
+    assert lease["released_at"] is None
+    assert operations.repository.count_rows("audit_events") == audit_count_before
+
+    with pytest.raises(StateApiError) as replay_error:
+        operations.release_task_lease(
+            lease_id,
+            claimant_id="worker-a",
+            idempotency_key="idem-release-expired",
+        )
+
+    assert replay_error.value.code == "lease_error"
+    assert replay_error.value.status_code == 409
+    assert not isinstance(replay_error.value, RuntimeValidationError)
+    assert operations.repository.get_lease(lease_id)["lease_state"] == "expired"
+    assert operations.repository.count_rows("audit_events") == audit_count_before
 
 
 def test_lease_duration_has_configured_maximum(operations) -> None:
