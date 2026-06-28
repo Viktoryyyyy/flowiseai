@@ -76,12 +76,14 @@ blocker_disposition:
 
 ## Approved branch and file scope
 
+The original contract test path was moved into the existing CI-exercised contract test file after review showed that `tests/contracts` was not collected by the required workflow. The effective approved scope below is therefore the exact Phase 12 PR scope after review fix.
+
 ```yaml
 approved_branch: "flowiseai-pm/phase-12-live-github-execution-task"
 approved_file_scope:
   - "docs/evidence/phase_10_hardening_controlled_run_001.md"
   - "docs/orchestration/phase_12_live_github_execution_task.md"
-  - "tests/contracts/test_phase_12_phase10_evidence_artifact.py"
+  - "tests/contract/test_required_bootstrap_files.py"
 ```
 
 ## Execution path
