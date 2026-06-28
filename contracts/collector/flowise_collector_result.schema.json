@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "contracts/collector/flowise_collector_result.schema.json",
+  "title": "Flowise Collector Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "collector_result_version",
+    "correlation_id",
+    "graph_id",
+    "raw_status",
+    "normalized_status",
+    "blocker_code",
+    "role_output",
+    "evidence_summary"
+  ],
+  "properties": {
+    "collector_result_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "correlation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "graph_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "request_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "result_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "raw_status": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ok",
+        "http_status",
+        "error_type",
+        "error_message"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        },
+        "http_status": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "error_type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error_message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "normalized_status": {
+      "type": "string",
+      "enum": [
+        "success",
+        "blocked",
+        "failed"
+      ]
+    },
+    "blocker_code": {
+      "type": "string",
+      "enum": [
+        "none",
+        "request_validation_failure",
+        "connection_failure",
+        "auth_failure",
+        "runtime_failure",
+        "schema_failure"
+      ]
+    },
+    "role_output": {
+      "type": [
+        "object",
+        "array",
+        "string",
+        "number",
+        "boolean",
+        "null"
+      ]
+    },
+    "evidence_summary": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}
