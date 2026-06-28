@@ -43,6 +43,12 @@ REQUIRED_BOOTSTRAP_FILES = [
 
 EXPECTED_BOOTSTRAP_FILES = list(REQUIRED_BOOTSTRAP_FILES)
 
+PHASE_12_APPROVED_FILE_SCOPE = [
+    "docs/evidence/phase_10_hardening_controlled_run_001.md",
+    "docs/orchestration/phase_12_live_github_execution_task.md",
+    "tests/contract/test_required_bootstrap_files.py",
+]
+
 ALLOWED_PLACEHOLDERS = {
     "<REDACTED>",
     "<SECRET_FROM_ENV>",
@@ -120,6 +126,15 @@ def load_contract_test_module(module_name: str):
     return module
 
 
+def extract_yaml_block(text: str, marker: str) -> dict:
+    marker_index = text.index(marker)
+    block_start = text.rfind("```yaml", 0, marker_index)
+    block_end = text.index("```", marker_index)
+    assert block_start != -1
+    yaml_text = text[block_start + len("```yaml"):block_end].strip()
+    return yaml.safe_load(yaml_text)
+
+
 def test_required_file_list_is_exact_approved_scope() -> None:
     assert REQUIRED_BOOTSTRAP_FILES == EXPECTED_BOOTSTRAP_FILES
     assert len(REQUIRED_BOOTSTRAP_FILES) == 28
@@ -189,3 +204,59 @@ def test_state_api_contract_design_modules_are_exercised_by_bootstrap_workflow()
     operations.test_mutating_operations_have_idempotency_contract()
     operations.test_state_api_contract_remains_runtime_neutral()
     operations.test_retry_representation_uses_task_metadata_plus_audit_event_only()
+
+
+def test_phase10_hardening_evidence_artifact_preserves_required_identity() -> None:
+    text = read_text("docs/evidence/phase_10_hardening_controlled_run_001.md")
+
+    required_tokens = [
+        "flowiseai_hardening_controlled_run_001",
+        "corr-flowiseai-hardening-controlled-run-001-20260628",
+        "flowise-run-request-hardening-controlled-run-001-20260628",
+        "flowise-run-result-hardening-controlled-run-001-20260628",
+        "flowiseai-hardening-controlled-run-001-20260628",
+        "04c5238e-ab3a-4390-bd89-9cd137ced7e8",
+        "6b217ffe57774473f841baef4a470d93227f5cf48814ec46b45d5323cd9282ff",
+        "740fdc6c144ce93b5e6340e36c7de4aa82bae5983957492a1daad8ea1da5c8e4",
+        "accepted_by_PM_L2",
+        "clean_operational_loop: \"yes\"",
+    ]
+
+    for token in required_tokens:
+        assert token in text
+
+
+def test_phase12_task_records_flowise_blocker_and_direct_github_fallback() -> None:
+    text = read_text("docs/orchestration/phase_12_live_github_execution_task.md")
+
+    required_tokens = [
+        "flowiseai_phase_12_live_github_execution_task",
+        "corr-flowiseai-phase-12-live-github-execution-task-20260628",
+        "flowise-run-request-phase-12-live-github-execution-task-20260628",
+        "github_mutation_tool_unavailable_in_flowise_agent",
+        "c999d23b42cf64b6b101ac7f0b4869d93356e5bce452e1ec443432aa6833d80f",
+        "stale_phase_10_template_status: \"resolved\"",
+        "github_direct_execution_required: true",
+        "flowiseai-pm/phase-12-live-github-execution-task",
+    ]
+
+    for token in required_tokens:
+        assert token in text
+
+
+def test_canonical_phase10_artifact_remains_present_and_accepted() -> None:
+    text = read_text("docs/orchestration/evidence/phase_10_controlled_run_2026-06-28.md")
+
+    assert "# Phase 10 Controlled Run Evidence Package" in text
+    assert "final_status: \"accepted_by_PM_L2\"" in text
+    assert "execution_id: \"04c5238e-ab3a-4390-bd89-9cd137ced7e8\"" in text
+    assert "graph_flowData_sha256: \"6b217ffe57774473f841baef4a470d93227f5cf48814ec46b45d5323cd9282ff\"" in text
+
+
+def test_phase12_documents_approved_file_scope_exactly() -> None:
+    text = read_text("docs/orchestration/phase_12_live_github_execution_task.md")
+    approved_scope_block = extract_yaml_block(text, "approved_file_scope:")
+
+    assert approved_scope_block["approved_file_scope"] == PHASE_12_APPROVED_FILE_SCOPE
+    assert len(approved_scope_block["approved_file_scope"]) == len(PHASE_12_APPROVED_FILE_SCOPE)
+    assert len(set(approved_scope_block["approved_file_scope"])) == len(PHASE_12_APPROVED_FILE_SCOPE)
