@@ -395,6 +395,54 @@
           },
           "blockers": {
             "maxItems": 0
+          },
+          "preflight_status": {
+            "const": "pass"
+          },
+          "mutation_allowed": {
+            "const": true
+          },
+          "hitl_approval": {
+            "properties": {
+              "approved": {
+                "const": true
+              }
+            },
+            "required": [
+              "approved"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "completed"
+          }
+        },
+        "required": [
+          "outcome"
+        ]
+      },
+      "then": {
+        "properties": {
+          "preflight_status": {
+            "const": "pass"
+          },
+          "mutation_allowed": {
+            "const": true
+          },
+          "hitl_approval": {
+            "properties": {
+              "approved": {
+                "const": true
+              }
+            },
+            "required": [
+              "approved"
+            ]
           }
         }
       }
