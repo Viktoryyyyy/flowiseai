@@ -194,6 +194,19 @@ def test_preflight_status_cannot_pass_with_blockers() -> None:
         validator.validate(payload)
 
 
+@pytest.mark.parametrize("check_status", ["failed", "blocked", "not_checked"])
+def test_preflight_status_pass_requires_every_required_check_to_pass(check_status: str) -> None:
+    schema = _schema(PRE_RESULT_SCHEMA)
+    validator = Draft202012Validator(schema)
+    payload = _preflight_result("pass")
+
+    validator.validate(payload)
+
+    payload["checks"]["auth_check"]["status"] = check_status
+    with pytest.raises(ValidationError):
+        validator.validate(payload)
+
+
 def test_mutation_is_blocked_unless_preflight_status_is_pass() -> None:
     schema = _schema(EXECUTION_RESULT_SCHEMA)
     validator = Draft202012Validator(schema)
@@ -206,6 +219,40 @@ def test_mutation_is_blocked_unless_preflight_status_is_pass() -> None:
     payload["status"] = "blocked"
     payload["outcome"] = "blocked"
     payload["blockers"] = [_blocker("github_authority_violation")]
+
+    with pytest.raises(ValidationError):
+        validator.validate(payload)
+
+
+def test_execution_succeeded_requires_pass_preflight_and_mutation_allowed() -> None:
+    schema = _schema(EXECUTION_RESULT_SCHEMA)
+    validator = Draft202012Validator(schema)
+    payload = _execution_result()
+
+    validator.validate(payload)
+
+    payload["preflight_status"] = "blocked"
+    payload["mutation_allowed"] = False
+    payload["status"] = "succeeded"
+    payload["outcome"] = "completed"
+    payload["blockers"] = []
+
+    with pytest.raises(ValidationError):
+        validator.validate(payload)
+
+
+def test_execution_completed_requires_pass_preflight_and_mutation_allowed() -> None:
+    schema = _schema(EXECUTION_RESULT_SCHEMA)
+    validator = Draft202012Validator(schema)
+    payload = _execution_result()
+
+    validator.validate(payload)
+
+    payload["preflight_status"] = "blocked"
+    payload["mutation_allowed"] = False
+    payload["status"] = "skipped"
+    payload["outcome"] = "completed"
+    payload["blockers"] = []
 
     with pytest.raises(ValidationError):
         validator.validate(payload)
