@@ -245,6 +245,155 @@
           "mutation_allowed": {
             "const": true
           },
+          "checks": {
+            "properties": {
+              "repo_allowlist_check": {
+                "properties": {
+                  "status": {
+                    "const": "pass"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+              "branch_state_check": {
+                "properties": {
+                  "status": {
+                    "const": "pass"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+              "file_state_check": {
+                "properties": {
+                  "status": {
+                    "const": "pass"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+              "pr_state_check": {
+                "properties": {
+                  "status": {
+                    "const": "pass"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+              "auth_check": {
+                "properties": {
+                  "status": {
+                    "const": "pass"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+              "permission_check": {
+                "properties": {
+                  "status": {
+                    "const": "pass"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+              "rate_limit_check": {
+                "properties": {
+                  "status": {
+                    "const": "pass"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+              "network_check": {
+                "properties": {
+                  "status": {
+                    "const": "pass"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+              "ci_ambiguity_check": {
+                "properties": {
+                  "status": {
+                    "const": "pass"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+              "idempotency_resume_check": {
+                "properties": {
+                  "status": {
+                    "const": "pass"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+              "scope_check": {
+                "properties": {
+                  "status": {
+                    "const": "pass"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+              "authority_check": {
+                "properties": {
+                  "status": {
+                    "const": "pass"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+              "secret_exposure_check": {
+                "properties": {
+                  "status": {
+                    "const": "pass"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              }
+            },
+            "required": [
+              "repo_allowlist_check",
+              "branch_state_check",
+              "file_state_check",
+              "pr_state_check",
+              "auth_check",
+              "permission_check",
+              "rate_limit_check",
+              "network_check",
+              "ci_ambiguity_check",
+              "idempotency_resume_check",
+              "scope_check",
+              "authority_check",
+              "secret_exposure_check"
+            ]
+          },
           "hitl_approval": {
             "properties": {
               "pm_l2_approval_status": {
