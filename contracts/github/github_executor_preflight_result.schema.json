@@ -1,0 +1,403 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "contracts/github/github_executor_preflight_result.schema.json",
+  "title": "GitHubPreflightResult",
+  "description": "Fail-closed preflight result. GitHub mutation is forbidden unless status is pass and blockers is empty.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "request_id",
+    "correlation_id",
+    "idempotency_key",
+    "status",
+    "mutation_allowed",
+    "repository_full_name",
+    "base_branch",
+    "target_branch",
+    "approved_file_scope",
+    "planned_operation",
+    "blockers",
+    "checks",
+    "hitl_approval",
+    "evaluated_at"
+  ],
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "correlation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 8
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "blocked",
+        "failed"
+      ]
+    },
+    "mutation_allowed": {
+      "type": "boolean"
+    },
+    "repository_full_name": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+    },
+    "base_branch": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_branch": {
+      "type": "string",
+      "minLength": 1
+    },
+    "approved_file_scope": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "planned_operation": {
+      "type": "string",
+      "minLength": 1
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/blocker"
+      },
+      "uniqueItems": true
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repo_allowlist_check",
+        "branch_state_check",
+        "file_state_check",
+        "pr_state_check",
+        "auth_check",
+        "permission_check",
+        "rate_limit_check",
+        "network_check",
+        "ci_ambiguity_check",
+        "idempotency_resume_check",
+        "scope_check",
+        "authority_check",
+        "secret_exposure_check"
+      ],
+      "properties": {
+        "repo_allowlist_check": {
+          "$ref": "#/$defs/check"
+        },
+        "branch_state_check": {
+          "$ref": "#/$defs/check"
+        },
+        "file_state_check": {
+          "$ref": "#/$defs/check"
+        },
+        "pr_state_check": {
+          "$ref": "#/$defs/check"
+        },
+        "auth_check": {
+          "$ref": "#/$defs/check"
+        },
+        "permission_check": {
+          "$ref": "#/$defs/check"
+        },
+        "rate_limit_check": {
+          "$ref": "#/$defs/check"
+        },
+        "network_check": {
+          "$ref": "#/$defs/check"
+        },
+        "ci_ambiguity_check": {
+          "$ref": "#/$defs/check"
+        },
+        "idempotency_resume_check": {
+          "$ref": "#/$defs/check"
+        },
+        "scope_check": {
+          "$ref": "#/$defs/check"
+        },
+        "authority_check": {
+          "$ref": "#/$defs/check"
+        },
+        "secret_exposure_check": {
+          "$ref": "#/$defs/check"
+        }
+      }
+    },
+    "hitl_approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pm_l2_approval_status",
+        "approval_ref"
+      ],
+      "properties": {
+        "pm_l2_approval_status": {
+          "type": "string",
+          "enum": [
+            "approved",
+            "missing",
+            "rejected"
+          ]
+        },
+        "approval_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repo",
+        "base_branch",
+        "target_branch",
+        "file_scope",
+        "pull_request",
+        "ci",
+        "rate_limit"
+      ],
+      "properties": {
+        "repo": {
+          "type": "string",
+          "minLength": 1
+        },
+        "base_branch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_branch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "file_scope": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "pull_request": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ci": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rate_limit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "evaluated_at": {
+      "type": "string",
+      "minLength": 20
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "pass"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "blockers": {
+            "maxItems": 0
+          },
+          "mutation_allowed": {
+            "const": true
+          },
+          "hitl_approval": {
+            "properties": {
+              "pm_l2_approval_status": {
+                "const": "approved"
+              }
+            },
+            "required": [
+              "pm_l2_approval_status"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "blocked",
+              "failed"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "blockers": {
+            "minItems": 1
+          },
+          "mutation_allowed": {
+            "const": false
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "blocker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "class",
+        "message",
+        "severity"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "enum": [
+            "github_auth_missing_or_invalid",
+            "github_permission_insufficient",
+            "github_repo_not_allowlisted",
+            "github_branch_state_invalid",
+            "github_file_state_conflict",
+            "github_pr_state_conflict",
+            "github_rate_limit_blocked",
+            "github_network_error",
+            "github_ci_ambiguity",
+            "github_idempotency_conflict",
+            "github_scope_drift",
+            "github_secret_exposure",
+            "github_authority_violation"
+          ]
+        },
+        "class": {
+          "type": "string",
+          "enum": [
+            "auth",
+            "permissions",
+            "repo_allowlist",
+            "branch_state",
+            "file_state",
+            "pr_state",
+            "rate_limits",
+            "network_errors",
+            "ci_ambiguity",
+            "duplicate_retry_idempotency",
+            "scope_drift",
+            "secret_exposure",
+            "authority_violation"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "blocking",
+            "warning"
+          ]
+        },
+        "evidence_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "evidence"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "blocked",
+            "failed",
+            "not_checked"
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "blocker_codes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "github_auth_missing_or_invalid",
+              "github_permission_insufficient",
+              "github_repo_not_allowlisted",
+              "github_branch_state_invalid",
+              "github_file_state_conflict",
+              "github_pr_state_conflict",
+              "github_rate_limit_blocked",
+              "github_network_error",
+              "github_ci_ambiguity",
+              "github_idempotency_conflict",
+              "github_scope_drift",
+              "github_secret_exposure",
+              "github_authority_violation"
+            ]
+          },
+          "uniqueItems": true,
+          "default": []
+        }
+      }
+    }
+  }
+}
