@@ -1,0 +1,559 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "contracts/github/github_execution_result.schema.json",
+  "title": "GitHubExecutionResult",
+  "description": "Post-preflight GitHub execution result. Mutations are allowed only after pass preflight and PM L2/HITL approval.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "execution_id",
+    "request_id",
+    "correlation_id",
+    "idempotency_key",
+    "repository_full_name",
+    "base_branch",
+    "branch_name",
+    "planned_operation",
+    "preflight_status",
+    "preflight_result_ref",
+    "hitl_approval",
+    "mutation_allowed",
+    "status",
+    "outcome",
+    "blockers",
+    "post_write_evidence",
+    "authority_boundary",
+    "completed_at"
+  ],
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "execution_id": {
+      "type": "string",
+      "pattern": "^github-execution-[A-Za-z0-9._-]+$"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "correlation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 8
+    },
+    "repository_full_name": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+    },
+    "base_branch": {
+      "type": "string",
+      "minLength": 1
+    },
+    "branch_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "planned_operation": {
+      "type": "string",
+      "minLength": 1
+    },
+    "preflight_status": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "blocked",
+        "failed"
+      ]
+    },
+    "preflight_result_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "hitl_approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "approved",
+        "approved_by_role",
+        "approval_ref"
+      ],
+      "properties": {
+        "approved": {
+          "type": "boolean"
+        },
+        "approved_by_role": {
+          "type": "string",
+          "enum": [
+            "PM_L2_PHASE_OWNER"
+          ]
+        },
+        "approval_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "mutation_allowed": {
+      "type": "boolean"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "succeeded",
+        "blocked",
+        "failed",
+        "skipped"
+      ]
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "blocked",
+        "failed",
+        "no_op"
+      ]
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/blocker"
+      },
+      "uniqueItems": true
+    },
+    "post_write_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "branch",
+        "commit_sha",
+        "head_sha",
+        "changed_files",
+        "pull_request",
+        "ci"
+      ],
+      "properties": {
+        "branch": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "commit_sha": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "head_sha": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "changed_files": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "pull_request": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "number",
+            "url",
+            "state"
+          ],
+          "properties": {
+            "number": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "url": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "state": {
+              "type": "string",
+              "enum": [
+                "open",
+                "closed",
+                "merged",
+                "not_created",
+                "not_required"
+              ]
+            }
+          }
+        },
+        "ci": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "workflow",
+            "run_id",
+            "job",
+            "conclusion",
+            "evidence_tied_to_head_sha"
+          ],
+          "properties": {
+            "workflow": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "run_id": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "job": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "conclusion": {
+              "type": "string",
+              "enum": [
+                "success",
+                "failure",
+                "cancelled",
+                "skipped",
+                "pending",
+                "not_found",
+                "not_required"
+              ]
+            },
+            "evidence_tied_to_head_sha": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "authority_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "merge_performed",
+        "direct_main_write_performed",
+        "force_push_performed",
+        "delete_performed",
+        "server_apply_performed",
+        "deployment_performed",
+        "flowise_graph_mutation_performed",
+        "secrets_exposed"
+      ],
+      "properties": {
+        "merge_performed": {
+          "const": false
+        },
+        "direct_main_write_performed": {
+          "const": false
+        },
+        "force_push_performed": {
+          "const": false
+        },
+        "delete_performed": {
+          "const": false
+        },
+        "server_apply_performed": {
+          "const": false
+        },
+        "deployment_performed": {
+          "const": false
+        },
+        "flowise_graph_mutation_performed": {
+          "const": false
+        },
+        "secrets_exposed": {
+          "const": false
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "completed_at": {
+      "type": "string",
+      "minLength": 20
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "mutation_allowed": {
+            "const": true
+          }
+        },
+        "required": [
+          "mutation_allowed"
+        ]
+      },
+      "then": {
+        "properties": {
+          "preflight_status": {
+            "const": "pass"
+          },
+          "hitl_approval": {
+            "properties": {
+              "approved": {
+                "const": true
+              }
+            },
+            "required": [
+              "approved"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "preflight_status": {
+            "enum": [
+              "blocked",
+              "failed"
+            ]
+          }
+        },
+        "required": [
+          "preflight_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "mutation_allowed": {
+            "const": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "hitl_approval": {
+            "properties": {
+              "approved": {
+                "const": false
+              }
+            },
+            "required": [
+              "approved"
+            ]
+          }
+        },
+        "required": [
+          "hitl_approval"
+        ]
+      },
+      "then": {
+        "properties": {
+          "mutation_allowed": {
+            "const": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "succeeded"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "outcome": {
+            "const": "completed"
+          },
+          "blockers": {
+            "maxItems": 0
+          },
+          "preflight_status": {
+            "const": "pass"
+          },
+          "mutation_allowed": {
+            "const": true
+          },
+          "hitl_approval": {
+            "properties": {
+              "approved": {
+                "const": true
+              }
+            },
+            "required": [
+              "approved"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "completed"
+          }
+        },
+        "required": [
+          "outcome"
+        ]
+      },
+      "then": {
+        "properties": {
+          "preflight_status": {
+            "const": "pass"
+          },
+          "mutation_allowed": {
+            "const": true
+          },
+          "hitl_approval": {
+            "properties": {
+              "approved": {
+                "const": true
+              }
+            },
+            "required": [
+              "approved"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "blocked",
+              "failed"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "blockers": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "skipped"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "outcome": {
+            "const": "no_op"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "blocker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "class",
+        "message",
+        "severity"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "enum": [
+            "github_auth_missing_or_invalid",
+            "github_permission_insufficient",
+            "github_repo_not_allowlisted",
+            "github_branch_state_invalid",
+            "github_file_state_conflict",
+            "github_pr_state_conflict",
+            "github_rate_limit_blocked",
+            "github_network_error",
+            "github_ci_ambiguity",
+            "github_idempotency_conflict",
+            "github_scope_drift",
+            "github_secret_exposure",
+            "github_authority_violation"
+          ]
+        },
+        "class": {
+          "type": "string",
+          "enum": [
+            "auth",
+            "permissions",
+            "repo_allowlist",
+            "branch_state",
+            "file_state",
+            "pr_state",
+            "rate_limits",
+            "network_errors",
+            "ci_ambiguity",
+            "duplicate_retry_idempotency",
+            "scope_drift",
+            "secret_exposure",
+            "authority_violation"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "blocking",
+            "warning"
+          ]
+        },
+        "evidence_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

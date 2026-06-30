@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "contracts/github/github_executor_preflight_request.schema.json",
+  "title": "GitHubExecutorPreflightRequest",
+  "description": "Fail-closed request contract that must be evaluated before any GitHub mutation by a Flowise-originated executor.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "request_id",
+    "correlation_id",
+    "idempotency_key",
+    "repository_full_name",
+    "base_branch",
+    "base_sha",
+    "target_branch",
+    "approved_file_scope",
+    "planned_operation",
+    "source_role",
+    "requester",
+    "authority_profile",
+    "hitl_approval",
+    "created_at"
+  ],
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^github-preflight-request-[A-Za-z0-9._-]+$"
+    },
+    "correlation_id": {
+      "type": "string",
+      "pattern": "^corr-[A-Za-z0-9._-]+$"
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 160
+    },
+    "repository_full_name": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+    },
+    "base_branch": {
+      "type": "string",
+      "minLength": 1
+    },
+    "base_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "target_branch": {
+      "type": "string",
+      "pattern": "^flowiseai-pm/[A-Za-z0-9._/-]+$"
+    },
+    "approved_file_scope": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "planned_operation": {
+      "type": "string",
+      "enum": [
+        "create_branch",
+        "create_or_update_approved_files",
+        "open_pull_request",
+        "resume_existing_branch_file_pr",
+        "verify_pr_ci"
+      ]
+    },
+    "source_role": {
+      "type": "string",
+      "enum": [
+        "PM_L2_PHASE_OWNER",
+        "PM_L3_DELIVERY_VALIDATION_OWNER",
+        "SUBCHAT_IMPLEMENTATION"
+      ]
+    },
+    "requester": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "execution_mode",
+        "lane"
+      ],
+      "properties": {
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "execution_mode": {
+          "type": "string",
+          "const": "browser_chatgpt_github_direct"
+        },
+        "lane": {
+          "type": "string",
+          "const": "flowiseai_pm_orchestration"
+        }
+      }
+    },
+    "authority_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile_name",
+        "repo_allowlist",
+        "branch_prefix_allowlist",
+        "direct_main_write_allowed",
+        "merge_allowed",
+        "force_push_allowed",
+        "delete_allowed",
+        "server_apply_allowed",
+        "deployment_allowed",
+        "flowise_graph_mutation_allowed",
+        "secrets_allowed"
+      ],
+      "properties": {
+        "profile_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "repo_allowlist": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "branch_prefix_allowlist": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "direct_main_write_allowed": {
+          "const": false
+        },
+        "merge_allowed": {
+          "const": false
+        },
+        "force_push_allowed": {
+          "const": false
+        },
+        "delete_allowed": {
+          "const": false
+        },
+        "server_apply_allowed": {
+          "const": false
+        },
+        "deployment_allowed": {
+          "const": false
+        },
+        "flowise_graph_mutation_allowed": {
+          "const": false
+        },
+        "secrets_allowed": {
+          "const": false
+        }
+      }
+    },
+    "hitl_approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pm_l2_approval_status",
+        "approval_ref",
+        "approved_scope_hash"
+      ],
+      "properties": {
+        "pm_l2_approval_status": {
+          "type": "string",
+          "enum": [
+            "approved",
+            "missing",
+            "rejected"
+          ]
+        },
+        "approval_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "approved_scope_hash": {
+          "type": "string",
+          "minLength": 8
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "created_at": {
+      "type": "string",
+      "minLength": 20
+    }
+  }
+}
